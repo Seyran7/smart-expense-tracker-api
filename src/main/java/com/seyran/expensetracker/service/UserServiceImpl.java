@@ -1,6 +1,7 @@
 package com.seyran.expensetracker.service;
 
 
+import com.seyran.expensetracker.dto.request.response.UserUpdateRequest;
 import com.seyran.expensetracker.model.User;
 import com.seyran.expensetracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,15 +33,17 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User with email " + email + " not found"));
     }
     @Override
-    public User update(Long id,User updatedUser){
-        User userToUpdate = userRepository.findById(updatedUser.getId()).orElseThrow(()-> new RuntimeException("User with id " + updatedUser.getId() + " not found"));
-        if(!userToUpdate.getEmail().equals(updatedUser.getEmail())) {
-            if (userRepository.existsByEmail(updatedUser.getEmail())) {
+    public User update(Long id, UserUpdateRequest request){
+        User userToUpdate = userRepository.findById(id).orElseThrow(()-> new RuntimeException("User with id " + id + " not found"));
+        if(request.getEmail()!=null && !userToUpdate.getEmail().equals(request.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
                 throw new RuntimeException("Email already in use");
             }
+            userToUpdate.setEmail(request.getEmail());
         }
-            userToUpdate.setEmail(updatedUser.getEmail());
-            userToUpdate.setPassword(updatedUser.getPassword());
+        if(request.getPassword()!=null) {
+            userToUpdate.setPassword(request.getPassword());
+        }
             return userRepository.save(userToUpdate);
     }
 

@@ -1,5 +1,6 @@
 package com.seyran.expensetracker.service;
 
+import com.seyran.expensetracker.dto.request.response.ExpenseUpdateRequest;
 import com.seyran.expensetracker.model.Expense;
 import com.seyran.expensetracker.model.User;
 import com.seyran.expensetracker.repository.ExpenseRepository;
@@ -24,19 +25,27 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public Expense update(Expense expense) {
-        Expense existing=expenseRepository.findById(expense.getId()).orElseThrow(()->new RuntimeException("Expense with id "+expense.getId()+" not found"));
-        existing.setAmount(expense.getAmount());
-        existing.setDate(expense.getDate());
-        existing.setDescription(expense.getDescription());
-        existing.setCategory(expense.getCategory());
+    public Expense update(Long Id, ExpenseUpdateRequest request) {
+        Expense existing=expenseRepository.findById(Id).orElseThrow(()->new RuntimeException("Expense with id "+Id+" not found"));
+        if(request.getAmount() != null) {
+            existing.setAmount(request.getAmount());
+        }
+        if(request.getDescription() != null) {
+            existing.setDescription(request.getDescription());
+        }
+        if(request.getDate() != null) {
+            existing.setDate(request.getDate());
+        }
+        if(request.getCategory() != null) {
+            existing.setCategory(request.getCategory());
+        }
         return expenseRepository.save(existing);
 
     }
 
     @Override
-    public Expense findById(Long id) {
-        return expenseRepository.findById(id).orElseThrow(()->new RuntimeException("Expense with id " + id + " not found"));
+    public Expense findById(Long Id) {
+        return expenseRepository.findById(Id).orElseThrow(()->new RuntimeException("Expense with id " + Id + " not found"));
     }
 
     @Override
@@ -56,5 +65,4 @@ public class ExpenseServiceImpl implements ExpenseService {
     public List<Expense> getExpenseByUser(User user) {
         return expenseRepository.findByUser(user);
     }
-
 }
