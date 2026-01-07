@@ -1,6 +1,7 @@
 package com.seyran.expensetracker.service;
 
 import com.seyran.expensetracker.dto.request.response.ExpenseUpdateRequest;
+import com.seyran.expensetracker.exception.NotFoundException;
 import com.seyran.expensetracker.model.Expense;
 import com.seyran.expensetracker.model.User;
 import com.seyran.expensetracker.repository.ExpenseRepository;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +26,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public Expense update(Long Id, ExpenseUpdateRequest request) {
-        Expense existing=expenseRepository.findById(Id).orElseThrow(()->new RuntimeException("Expense with id "+Id+" not found"));
+        Expense existing=expenseRepository.findById(Id).orElseThrow(()->new NotFoundException("Expense with id "+Id+" not found"));
         if(request.getAmount() != null) {
             existing.setAmount(request.getAmount());
         }
@@ -45,13 +45,13 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public Expense findById(Long Id) {
-        return expenseRepository.findById(Id).orElseThrow(()->new RuntimeException("Expense with id " + Id + " not found"));
+        return expenseRepository.findById(Id).orElseThrow(()->new NotFoundException("Expense with id " + Id + " not found"));
     }
 
     @Override
     public void deleteById(Long id) {
         if (!expenseRepository.existsById(id)) {
-            throw new RuntimeException("Expense with id " + id + "not found");
+            throw new NotFoundException("Expense with id " + id + "not found");
         }
         expenseRepository.deleteById(id);
     }
