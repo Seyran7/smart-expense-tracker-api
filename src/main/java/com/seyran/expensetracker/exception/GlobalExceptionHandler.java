@@ -2,39 +2,63 @@ package com.seyran.expensetracker.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler (NotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFoundException(NotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                "message", ex.getMessage(),
-                "timestamp", LocalDateTime.now(),
-                "status", 404,
-                "error","Not Found"
+    public ResponseEntity<ApiError> handleNotFoundException(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(
+                404,
+                "Not Found",
+                ex.getMessage(),
+                LocalDateTime.now()
+        ));
+
+    }
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiError> handleBadRequestException(BadRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(
+                400,
+                "Bad Request",
+                ex.getMessage(),
+                LocalDateTime.now()
         ));
     }
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                "timestamp", LocalDateTime.now(),
-                "status",400,
-                "message", ex.getMessage(),
-                "error","Bad Request"
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiError> handleConflictException(ConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(
+                409,
+                "Conflict",
+                ex.getMessage(),
+                LocalDateTime.now()
         ));
     }
+
+
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError>handleValidation(MethodArgumentNotValidException ex){
-        String message = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(new ApiError(400,message));
+    public ResponseEntity<ValidationErrorResponse>handleValidation(MethodArgumentNotValidException ex){
+       Map<String, String> errors = ex.getBindingResult()
+               .getFieldErrors()
+               .stream()
+               .collect(Collectors
+               .toMap(FieldError::getField, FieldError::getDefaultMessage,(oldValue, newValue) -> oldValue
+       ));
+       ValidationErrorResponse response = new ValidationErrorResponse(
+               400,
+               errors,
+               LocalDateTime.now()
+       );
+       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }
