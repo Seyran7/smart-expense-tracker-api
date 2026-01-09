@@ -8,6 +8,9 @@ import com.seyran.expensetracker.model.User;
 import com.seyran.expensetracker.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,31 +23,36 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public UserResponse createUser(@Valid @RequestBody UserCreateRequest request) {
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserCreateRequest request) {
         User user= UserMapper.toEntity(request);
         User savedUser = userService.saveUser(user);
-        return UserMapper.toResponse(savedUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(UserMapper.toResponse(savedUser));
     }
     @GetMapping("/{Id}")
-    public UserResponse getUserById(@PathVariable Long id) {
-        return UserMapper.toResponse(userService.getUserById(id));
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+        User user = userService.getUserById(id);
+        return ResponseEntity.ok(UserMapper.toResponse(user));
     }
     @GetMapping
-    public List<UserResponse> getAllUsers() {
-        return userService.getAllUsers().stream().map(UserMapper::toResponse).collect(Collectors.toList());
+    public ResponseEntity<List<UserResponse>> getAllUsers(Pageable pageable) {
+        List<UserResponse> users = userService.getAllUsers(pageable)
+                .stream().map(UserMapper::toResponse).collect(Collectors.toList());
+        return ResponseEntity.ok(users);
     }
     @GetMapping
-    public UserResponse getUserByEmail(@RequestParam String email) {
-        return UserMapper.toResponse(userService.getUserByEmail(email));
+    public ResponseEntity<UserResponse> getUserByEmail(@RequestParam String email) {
+        User user = userService.getUserByEmail(email);
+        return ResponseEntity.ok(UserMapper.toResponse(user));
     }
     @PutMapping("/{id}")
-    public UserResponse updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
 
        User userUpdated = userService.update(id, request);
-        return UserMapper.toResponse(userUpdated);
+        return ResponseEntity.ok(UserMapper.toResponse(userUpdated));
     }
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }

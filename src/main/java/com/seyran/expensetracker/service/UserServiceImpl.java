@@ -7,10 +7,12 @@ import com.seyran.expensetracker.exception.NotFoundException;
 import com.seyran.expensetracker.model.User;
 import com.seyran.expensetracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +60,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable );
     }
 }

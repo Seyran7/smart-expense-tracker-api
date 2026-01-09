@@ -6,6 +6,8 @@ import com.seyran.expensetracker.model.Expense;
 import com.seyran.expensetracker.model.User;
 import com.seyran.expensetracker.repository.ExpenseRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -57,8 +59,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<Expense>findAll() {
-        return expenseRepository.findAll();
+    public Page<Expense> findAll(Pageable pageable) {
+        return expenseRepository.findAll(pageable);
     }
 
     @Override

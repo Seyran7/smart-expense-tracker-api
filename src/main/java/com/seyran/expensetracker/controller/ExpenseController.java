@@ -11,6 +11,10 @@ import com.seyran.expensetracker.service.ExpenseService;
 import com.seyran.expensetracker.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,33 +28,39 @@ public class ExpenseController {
     private final UserService userService;
 
     @PostMapping
-    public ExpenseResponse createExpense(@Valid @RequestBody ExpenseCreateRequest request) {
+    public ResponseEntity<ExpenseResponse> createExpense(@Valid @RequestBody ExpenseCreateRequest request) {
         User user =userService.getUserById(request.getUserId());
        Expense expense= ExpenseMapper.mapToEntity(request,user);
        Expense savedExpense = expenseService.save(expense);
-        return ExpenseMapper.mapToResponse(savedExpense);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ExpenseMapper.mapToResponse(savedExpense));
     }
-    @GetMapping("/id")
-    public ExpenseResponse getExpenseById(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<ExpenseResponse> getExpenseById(@PathVariable Long id) {
         Expense expense=expenseService.findById(id);
-        return ExpenseMapper.mapToResponse(expense);
+        return ResponseEntity.ok(ExpenseMapper.mapToResponse(expense));
     }
     @GetMapping
-    public List<ExpenseResponse> getAllExpenses() {
-        return expenseService.findAll().stream().map(ExpenseMapper::mapToResponse).collect(Collectors.toList());
+    public ResponseEntity<Page<ExpenseResponse>>getAllExpenses(Pageable pageable) {
+        Page<Expense> expenses=expenseService.findAll(pageable);
+
+        return ResponseEntity.ok(expenses.map(ExpenseMapper::mapToResponse));
     }
     @GetMapping("/user/{userId}")
-    public List<ExpenseResponse> getExpensesByUser(@PathVariable Long userId) {
+    public ResponseEntity<List<ExpenseResponse>> getExpensesByUser(@PathVariable Long userId) {
         User user = userService.getUserById(userId);
-        return expenseService.getExpenseByUser(user).stream().map(ExpenseMapper::mapToResponse).collect(Collectors.toList());
+        List<ExpenseResponse> expenses =expenseService.getExpenseByUser(user).stream().map(ExpenseMapper::mapToResponse).collect(Collectors.toList());
+        return ResponseEntity.ok(expenses);
     }
     @PutMapping("/{Id}")
-    public ExpenseResponse updateExpense(@PathVariable Long Id, @RequestBody ExpenseUpdateRequest request) {
+    public ResponseEntity<ExpenseResponse> updateExpense(@PathVariable Long Id, @RequestBody ExpenseUpdateRequest request) {
         Expense updatedExpense = expenseService.update(Id,request);
-        return ExpenseMapper.mapToResponse(updatedExpense);
+        return ResponseEntity.ok(ExpenseMapper.mapToResponse(updatedExpense));
     }
     @DeleteMapping("/{Id}")
-    public void deleteExpense(@PathVariable Long Id) {
+    public ResponseEntity<Void> deleteExpense(@PathVariable Long Id) {
         expenseService.deleteById(Id);
+        return ResponseEntity.noContent().build();
     }
 }
